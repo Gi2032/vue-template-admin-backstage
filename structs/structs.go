@@ -49,15 +49,15 @@ type Records_Data struct {
 	Total int `json:"total"`
 	Data  any `json:"data"`
 }
-
 type Menu_Data struct {
-	Id          string `db:"id" json:"id"`
-	MenuName    string `db:"menuName" json:"menuName"`
-	MenuKey     string `db:"menuKey" json:"menuKey"`
-	MenuIcon    string `db:"menuIcon" json:"menuIcon"`
-	PagePath    string `db:"pagePath" json:"pagePath"`
-	MenuSort    string `db:"menuSort" json:"menuSort"`
-	RolePermiss string `db:"rolePermiss" json:"rolePermiss"`
-	Status      string `db:"status" json:"status"`
-	Children    string `db:"children" json:"children"`
+	Id          string      `db:"id" json:"id"`
+	MenuName    string      `db:"menuName" json:"menuName"`
+	MenuKey     string      `db:"menuKey" json:"menuKey"`
+	MenuIcon    *string     `db:"menuIcon" json:"menuIcon"`
+	PagePath    string      `db:"pagePath" json:"pagePath"`
+	MenuSort    string      `db:"menuSort" json:"menuSort"`
+	RolePermiss *string     `db:"rolePermiss" json:"rolePermiss"`
+	Status      string      `db:"status" json:"status"`
+	ParentMenu  string      `db:"parentMenu" json:"parentMenu"`
+	Children    []Menu_Data `json:"children"`
 }

@@ -3,7 +3,6 @@ package handle
 import (
 	"fmt"
 	"ggg/structs"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,31 +10,49 @@ import (
 func (b *Backend) GetMenuList(c *gin.Context) {
 
 	var u_data []structs.Menu_Data
+	var r_u_data []structs.Menu_Data
 
-	pageNo := c.Query("pageNo")
-	pageSize := c.Query("pageSize")
-	size, _ := strconv.Atoi(pageSize)
-	no, _ := strconv.Atoi(pageNo)
-	pageStart := (no - 1) * size
+	// pageNo := c.Query("pageNo")
+	// pageSize := c.Query("pageSize")
+	// size, _ := strconv.Atoi(pageSize)
+	// no, _ := strconv.Atoi(pageNo)
+	// pageStart := (no - 1) * size
 
 	var data_count int
 	err := b.DbName.Get(&data_count, "Select count(1) from menus")
 	if err != nil {
+		c.JSON(200, structs.Ret{Status: 500, Message: "获取Total失败", Success: false, Data: err})
+		return
+	}
+	// err = b.DbName.Select(&u_data, "Select * from menus limit ?,?", pageStart, size)
+	// 子类
+	err = b.DbName.Select(&u_data, "Select * from menus where parentMenu != 'layout'")
+
+	if err != nil {
 		c.JSON(200, structs.Ret{Status: 500, Message: "系统错误", Success: false, Data: err})
 		return
 	}
-	err = b.DbName.Select(&u_data, "Select * from menus limit ?,?", pageStart, size)
+	// 全部
+	err = b.DbName.Select(&r_u_data, "Select * from menus where parentMenu = 'layout'")
 	if err != nil {
 		c.JSON(200, structs.Ret{Status: 500, Message: "系统错误", Success: false, Data: err})
 		return
 	}
 
-	var records_data structs.Records_Data
-	records_data.Total = data_count
-	records_data.Page = no
-	records_data.Data = u_data
+	for i := 0; i < len(u_data); i++ {
+		for _i := 0; _i < len(r_u_data); _i++ {
+			if u_data[i].ParentMenu == r_u_data[_i].MenuKey {
+				r_u_data[_i].Children = append(r_u_data[_i].Children, u_data[i])
+			}
+		}
+	}
 
-	c.JSON(200, structs.Ret_Page{Status: 200, Message: "请求成功", Success: true, Records: records_data})
+	// var records_data structs.Records_Data
+	// records_data.Total = data_count
+	// records_data.Page = no
+	// records_data.Data = u_data
+
+	c.JSON(200, structs.Ret{Status: 200, Message: "请求成功", Success: true, Data: r_u_data})
 }
 
 func (b *Backend) AddMenu(c *gin.Context) {
@@ -92,17 +109,17 @@ func (b *Backend) AddMenu(c *gin.Context) {
 		return
 	}
 
-	sqlStr2 := "update menus set children = ? where menuKey=?"
+	// sqlStr2 := "update menus set children = ? where menuKey=?"
 
-	var new_children string
+	// var new_children string
 
-	if u_data_parent == nil {
-		new_children = key
-	} else {
-		new_children = u_data_parent[0].Children + "," + key
-	}
+	// if u_data_parent == nil {
+	// 	new_children = key
+	// } else {
+	// 	new_children = *u_data_parent[0].Children + "," + key
+	// }
 
-	_, err = b.DbName.Exec(sqlStr2, new_children, parent_menu)
+	// _, err = b.DbName.Exec(sqlStr2, new_children, parent_menu)
 
 	if err != nil {
 		c.JSON(500, structs.Ret{Status: 200, Message: "更新children失败", Success: true, Data: nil})
